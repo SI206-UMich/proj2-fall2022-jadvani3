@@ -25,7 +25,29 @@ def get_listings_from_search_results(html_file):
         ('Loft in Mission District', 210, '1944564'),  # example
     ]
     """
-    pass
+
+    with open(html_file,"r") as file:
+        soup = BeautifulSoup(file,'html.parser')
+
+        names = soup.find_all('div',class_="t1jojoys dir dir-ltr")
+        prices = soup.find_all('span',class_ = "_tyxjp1")
+
+
+        hrefs = soup.find_all("a", class_ = "ln2bl2p dir dir-ltr")
+        rx = "\/(\d+)\?"
+
+        final_list = []
+        for item in range(len(hrefs)):
+            href = hrefs[item].get('href',None)
+            id = re.findall(rx,href)
+
+
+            tuple = (names[item].get_text(),int(prices[item].get_text().strip("$")),id[0])
+
+            final_list.append(tuple)
+
+            return(final_list)
+
 
 
 def get_listing_information(listing_id):
@@ -52,7 +74,43 @@ def get_listing_information(listing_id):
         number of bedrooms
     )
     """
-    pass
+    with open("html_files/listing_"+ listing_id + ".html","r") as file:
+        soup = BeautifulSoup(file,'html.parser')
+
+        policy = soup.find("li",class_="f19phm7j dir dir-ltr").get_text()
+        policy = policy[15:]
+
+
+        if "pending" in policy.lower():
+            policy = "Pending"
+        if "not" in policy.lower():
+            policy = "Exempt"
+
+
+        name = soup.find('h2',class_ = "_14i3z6h").get_text()
+
+        if re.match("private",name.lower()):
+            name = ("Private Room")
+        elif re.match("Shared",name.lower()):
+            name = ("Shared Room")
+        else:
+            name = ("Entire Room")
+
+
+        bedrooms = soup.find_all("li", class_="l7n4lsf dir dir-ltr")
+        bedrooms = bedrooms[1].find_all("span")
+        bedrooms = (bedrooms[2].get_text()[0:1])
+
+
+        if bedrooms.lower() == "s":
+            bedrooms = 1
+        else:
+            bedrooms = int(bedrooms)
+
+        output = (policy,name,bedrooms)
+
+        return output
+
 
 
 def get_detailed_listing_database(html_file):
